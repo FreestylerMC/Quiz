@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wissens-Quiz</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    
+    <style>
+        :root {
+            --primary-color: #fff;
+            --secondary-color: #000;
+            --accent-color: gold; 
+            --selected-bg: #444; 
+            --selected-text: #fff; 
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            text-align: center;
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            position: relative;
+        }
+
+        h1, h2 {
+            color: var(--accent-color);
+        }
+
+        /* Startseite */
+        #start-seite {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        #start-seite.hidden {
+            display: none;
+        }
+
+        #start-seite p {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        #start-seite .btn {
+            padding: 15px 30px;
+            font-size: 1.5em;
+            cursor: pointer;
+            border: 2px solid var(--accent-color);
+            background-color: #333;
+            color: var(--primary-color);
+            transition: background-color 0.3s;
+        }
+        
+        #start-seite .btn:hover {
+            background-color: #555;
+        }
+
+        /* Obere Leiste */
+        .header-bar {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        
+        .progress-label {
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .progress {
+            width: 60%;
+            height: 25px;
+            background-color: #333;
+            border: 2px solid var(--accent-color);
+        }
+        
+        .progress-bar {
+            background-color: var(--accent-color) !important;
+        }
+        
+        /* Antworten-Container */
+        .frage { 
+            font-size: 1.5rem;
+            margin-bottom: 20px; 
+        }
+
+        .antworten-container {
+            display: grid;
+            grid-template-columns: 1fr; 
+            gap: 10px;
+        }
+
+        @media (min-width: 768px) { 
+            .antworten-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .antwort-btn {
+            padding: 15px;
+            border: 5px solid var(--primary-color);
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s, border-color 0.3s;
+            box-sizing: border-box;
+            color: var(--secondary-color);
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+            text-align: left;
+        }
+        
+        /* Auswahl-Status */
+        .antwort-btn.selected { 
+            border-color: var(--selected-bg);
+            background-color: var(--selected-bg);
+            color: var(--selected-text);
+        }
+        
+        #antwort-0 { background-color: #ff3333; color: white; border-color: #ff3333; }
+        #antwort-1 { background-color: #ffcc00; color: black; border-color: #ffcc00; }
+        #antwort-2 { background-color: #009933; color: white; border-color: #009933; }
+        #antwort-3 { background-color: #0066cc; color: white; border-color: #0066cc; }
+
+        /* Anpassung für selected Zustand bei individuellen Farben */
+        #antwort-0.selected { background-color: var(--selected-bg) !important; border-color: var(--selected-bg) !important; color: var(--selected-text) !important; }
+        #antwort-1.selected { background-color: var(--selected-bg) !important; border-color: var(--selected-bg) !important; color: var(--selected-text) !important; }
+        #antwort-2.selected { background-color: var(--selected-bg) !important; border-color: var(--selected-bg) !important; color: var(--selected-text) !important; }
+        #antwort-3.selected { background-color: var(--selected-bg) !important; border-color: var(--selected-bg) !important; color: var(--selected-text) !important; }
+        
+        #feedback { font-size: 1.2em; margin-top: 20px; }
+        
+        .action-buttons .btn {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            border: 2px solid var(--accent-color);
+            background-color: #333;
+            color: var(--primary-color);
+            transition: background-color 0.3s;
+        }
+        
+        .action-buttons .btn:hover { background-color: #555; }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+        <div id="start-seite" class="text-center p-5">
+            <h1 class="mb-4">Willkommen zum Wissens-Quiz!</h1>
+            <p class="lead mb-4">Ein spannendes Quiz mit 10 Fragen. Wenn Sie eine Frage falsch beantworten, können Sie es erneut versuchen oder das Spiel beenden.</p>
+            <button id="ok-btn" class="btn btn-outline-warning btn-lg">OK</button>
+        </div>
+
+        <div class="text-center w-100">
+            <h1 class="mb-4">Wissens-Quiz</h1>
+            
+            <div class="header-bar mb-4" id="headerBar">
+                <span class="progress-label" id="progressLabel"></span>
+                <div class="progress" role="progressbar" aria-label="Fortschritt" aria-valuenow="0" aria-valuemin="0" aria-valuemax="10">
+                    <div class="progress-bar" id="fortschrittBalken" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="frage mb-4" id="frageText"></div>
+
+            <div class="antworten-container mx-auto">
+                <button class="antwort-btn" id="antwort-0"></button>
+                <button class="antwort-btn" id="antwort-1"></button>
+                <button class="antwort-btn" id="antwort-2"></button>
+                <button class="antwort-btn" id="antwort-3"></button>
+            </div>
+
+            <div class="action-buttons d-flex justify-content-center gap-2 mt-4">
+                <button id="bestaetigen-btn" class="btn btn-primary">Antworten bestätigen</button>
+                <button id="weiter-btn" class="btn btn-success hidden">Weiter</button>
+                <button id="neuVersuchen-btn" class="btn btn-warning hidden">Nochmal versuchen</button>
+                <button id="abbrechen-btn" class="btn btn-danger hidden">Abbrechen</button>
+            </div>
+            
+            <div id="feedback" class="mt-3"></div>
+        </div>
+    </div>
+    
+    <audio id="hintergrundMusik" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" loop preload="auto"></audio>
+    <audio id="richtigSound" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" preload="auto"></audio>
+    <audio id="falschSound" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3" preload="auto"></audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script>
+        const fragen = [
+            {
+                frage: "Welche der folgenden Länder sind in der EU?",
+                antworten: [
+                    { text: "Deutschland", korrekt: true },
+                    { text: "Schweiz", korrekt: false },
+                    { text: "Frankreich", korrekt: true },
+                    { text: "Norwegen", korrekt: false }
+                ]
+            },
+            {
+                frage: "Welche Tiere können fliegen?",
+                antworten: [
+                    { text: "Fisch", korrekt: false },
+                    { text: "Adler", korrekt: true },
+                    { text: "Pinguin", korrekt: false },
+                    { text: "Fledermaus", korrekt: true }
+                ]
+            },
+            {
+                frage: "Welche der folgenden Zahlen sind Primzahlen?",
+                antworten: [
+                    { text: "7", korrekt: true },
+                    { text: "10", korrekt: false },
+                    { text: "13", korrekt: true },
+                    { text: "15", korrekt: false }
+                ]
+            },
+            {
+                frage: "Welches ist das größte Land der Welt nach Fläche?",
+                antworten: [
+                    { text: "China", korrekt: false },
+                    { text: "USA", korrekt: false },
+                    { text: "Russland", korrekt: true },
+                    { text: "Kanada", korrekt: false }
+                ]
+            },
+            {
+                frage: "Welche Kontinente gehören zur 'Neuen Welt'?",
+                antworten: [
+                    { text: "Asien", korrekt: false },
+                    { text: "Nordamerika", korrekt: true },
+                    { text: "Europa", korrekt: false },
+                    { text: "Südamerika", korrekt: true }
+                ]
+            },
+            {
+                frage: "Welche Sportarten sind Teil der Olympischen Sommerspiele?",
+                antworten: [
+                    { text: "Skispringen", korrekt: false },
+                    { text: "Schwimmen", korrekt: true },
+                    { text: "Eishockey", korrekt: false },
+                    { text: "Leichtathletik", korrekt: true }
+                ]
+            },
+            {
+                frage: "Welche dieser Getränke sind fermentiert?",
+                antworten: [
+                    { text: "Wasser", korrekt: false },
+                    { text: "Bier", korrekt: true },
+                    { text: "Wein", korrekt: true },
+                    { text: "Milch", korrekt: false }
+                ]
+            },
+            {
+                frage: "Welche sind die Grundfarben im RGB-Modell?",
+                antworten: [
+                    { text: "Rot", korrekt: true },
+                    { text: "Gelb", korrekt: false },
+                    { text: "Grün", korrekt: true },
+                    { text: "Blau", korrekt: true }
+                ]
+            },
+            {
+                frage: "Welche der folgenden sind Musikinstrumente?",
+                antworten: [
+                    { text: "Hammer", korrekt: false },
+                    { text: "Gitarre", korrekt: true },
+                    { text: "Schere", korrekt: false },
+                    { text: "Klavier", korrekt: true }
+                ]
+            },
+            {
+                frage: "Welche Tiere legen Eier?",
+                antworten: [
+                    { text: "Hund", korrekt: false },
+                    { text: "Huhn", korrekt: true },
+                    { text: "Kuh", korrekt: false },
+                    { text: "Schildkröte", korrekt: true }
+                ]
+            }
+        ];
+
+        let aktuelleFrageIndex = 0;
+        let istRichtig = false;
+
+        // DOM-Elemente
+        const startSeite = document.getElementById('start-seite');
+        const okBtn = document.getElementById('ok-btn');
+        const frageElement = document.getElementById('frageText');
+        const antwortButtons = document.querySelectorAll('.antwort-btn');
+        const feedbackElement = document.getElementById('feedback');
+        const bestaetigenBtn = document.getElementById('bestaetigen-btn');
+        const weiterBtn = document.getElementById('weiter-btn');
+        const neuVersuchenBtn = document.getElementById('neuVersuchen-btn');
+        const abbrechenBtn = document.getElementById('abbrechen-btn');
+        const fortschrittBalken = document.getElementById('fortschrittBalken');
+        const progressLabel = document.getElementById('progressLabel');
+        const headerBar = document.getElementById('headerBar');
+
+        const hintergrundMusik = document.getElementById('hintergrundMusik');
+        const richtigSound = document.getElementById('richtigSound');
+        const falschSound = document.getElementById('falschSound');
+
+        function starteSpiel() {
+            startSeite.classList.add('hidden');
+            hintergrundMusik.play().catch(e => console.error("Autoplay-Fehler: ", e));
+            ladeFrage();
+        }
+        
+        function updateFortschritt() {
+            const fortschritt = (aktuelleFrageIndex / fragen.length) * 100;
+            fortschrittBalken.style.width = `${fortschritt}%`;
+            fortschrittBalken.setAttribute('aria-valuenow', aktuelleFrageIndex);
+            progressLabel.textContent = `Level: ${aktuelleFrageIndex + 1}/${fragen.length}`;
+        }
+        
+        // Mischen der Antworten vor dem Anzeigen
+        function mischeAntworten(antwortenArray) {
+            for (let i = antwortenArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [antwortenArray[i], antwortenArray[j]] = [antwortenArray[j], antwortenArray[i]];
+            }
+            return antwortenArray;
+        }
+
+        function ladeFrage() {
+            if (aktuelleFrageIndex >= fragen.length) {
+                zeigeErgebnis();
+                return;
+            }
+
+            const frage = fragen[aktuelleFrageIndex];
+            const gemischteAntworten = mischeAntworten([...frage.antworten]);
+
+            frageElement.textContent = frage.frage;
+
+            antwortButtons.forEach((btn, index) => {
+                const antwort = gemischteAntworten[index];
+                btn.textContent = `${['A', 'B', 'C', 'D'][index]}) ${antwort.text}`;
+                btn.dataset.korrekt = antwort.korrekt; 
+                btn.classList.remove('selected'); 
+                
+                if (index === 0) { btn.style.backgroundColor = '#ff3333'; btn.style.borderColor = '#ff3333'; btn.style.color = 'white'; }
+                if (index === 1) { btn.style.backgroundColor = '#ffcc00'; btn.style.borderColor = '#ffcc00'; btn.style.color = 'black'; }
+                if (index === 2) { btn.style.backgroundColor = '#009933'; btn.style.borderColor = '#009933'; btn.style.color = 'white'; }
+                if (index === 3) { btn.style.backgroundColor = '#0066cc'; btn.style.borderColor = '#0066cc'; btn.style.color = 'white'; }
+
+                btn.disabled = false;
+                btn.classList.remove('hidden'); 
+            });
+
+            bestaetigenBtn.classList.remove('hidden');
+            weiterBtn.classList.add('hidden');
+            neuVersuchenBtn.classList.add('hidden');
+            abbrechenBtn.classList.add('hidden');
+            feedbackElement.textContent = '';
+            headerBar.classList.remove('hidden'); 
+
+            updateFortschritt();
+        }
+        
+        function waehleAntwort(event) {
+            if (bestaetigenBtn.classList.contains('hidden')) {
+                return; 
+            }
+            event.target.classList.toggle('selected');
+        }
+
+        function ueberpruefeAntworten() {
+            const ausgewaehlteAntworten = Array.from(document.querySelectorAll('.antwort-btn.selected'));
+            
+            const korrekteAusgewaehlt = ausgewaehlteAntworten.every(btn => btn.dataset.korrekt === 'true');
+            const alleKorrektenGefunden = Array.from(document.querySelectorAll('.antwort-btn[data-korrekt="true"]')).length === ausgewaehlteAntworten.length;
+
+            if (korrekteAusgewaehlt && alleKorrektenGefunden) {
+                richtigSound.play();
+                feedbackElement.textContent = "Richtig! Gut gemacht!";
+                feedbackElement.style.color = 'lime';
+                bestaetigenBtn.classList.add('hidden');
+                weiterBtn.classList.remove('hidden');
+                antwortButtons.forEach(btn => btn.disabled = true);
+            } else {
+                falschSound.play();
+                feedbackElement.textContent = "Falsch! Versuchen Sie es noch einmal.";
+                feedbackElement.style.color = 'red';
+                bestaetigenBtn.classList.add('hidden');
+                neuVersuchenBtn.classList.remove('hidden');
+                abbrechenBtn.classList.remove('hidden');
+            }
+        }
+
+        function zeigeErgebnis() {
+            frageElement.textContent = `Glückwunsch! Du hast das Spiel erfolgreich beendet!`;
+            bestaetigenBtn.classList.add('hidden');
+            weiterBtn.classList.add('hidden');
+            neuVersuchenBtn.classList.add('hidden');
+            abbrechenBtn.classList.add('hidden');
+            antwortButtons.forEach(btn => btn.classList.add('hidden')); 
+            feedbackElement.textContent = "";
+            headerBar.classList.add('hidden'); 
+        }
+        
+        function spieleAbbrechen() {
+            frageElement.textContent = `Das Spiel wurde abgebrochen.`;
+            bestaetigenBtn.classList.add('hidden');
+            weiterBtn.classList.add('hidden');
+            neuVersuchenBtn.classList.add('hidden');
+            abbrechenBtn.classList.add('hidden');
+            antwortButtons.forEach(btn => btn.classList.add('hidden')); 
+            feedbackElement.textContent = "";
+            headerBar.classList.add('hidden'); 
+        }
+        
+        function frageZuruecksetzen() {
+            antwortButtons.forEach(btn => {
+                btn.classList.remove('selected');
+                btn.disabled = false;
+                
+                if (btn.id === 'antwort-0') { btn.style.backgroundColor = '#ff3333'; btn.style.borderColor = '#ff3333'; btn.style.color = 'white'; }
+                if (btn.id === 'antwort-1') { btn.style.backgroundColor = '#ffcc00'; btn.style.borderColor = '#ffcc00'; btn.style.color = 'black'; }
+                if (btn.id === 'antwort-2') { btn.style.backgroundColor = '#009933'; btn.style.borderColor = '#009933'; btn.style.color = 'white'; }
+                if (btn.id === 'antwort-3') { btn.style.backgroundColor = '#0066cc'; btn.style.borderColor = '#0066cc'; btn.style.color = 'white'; }
+            });
+            bestaetigenBtn.classList.remove('hidden');
+            weiterBtn.classList.add('hidden');
+            neuVersuchenBtn.classList.add('hidden');
+            abbrechenBtn.classList.add('hidden');
+            feedbackElement.textContent = "";
+        }
+
+        // Event-Listener
+        okBtn.addEventListener('click', starteSpiel);
+        
+        antwortButtons.forEach(button => {
+            button.addEventListener('click', waehleAntwort);
+        });
+
+        bestaetigenBtn.addEventListener('click', ueberpruefeAntworten);
+        
+        weiterBtn.addEventListener('click', function() {
+            aktuelleFrageIndex++;
+            ladeFrage();
+        });
+
+        neuVersuchenBtn.addEventListener('click', frageZuruecksetzen);
+        abbrechenBtn.addEventListener('click', spieleAbbrechen);
+        
+        window.onload = function() {
+            updateFortschritt();
+        };
+
+    </script>
+</body>
+</html>
