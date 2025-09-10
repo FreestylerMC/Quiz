@@ -334,9 +334,24 @@
         const hintergrundMusik = document.getElementById('hintergrundMusik');
         const richtigSound = document.getElementById('richtigSound');
         const falschSound = document.getElementById('falschSound');
+        
+        // Funktion zum Aktivieren des Vollbildmodus
+        function activateFullscreen(element) {
+            if (element.requestFullscreen) {
+                element.requestFullscreen();
+            } else if (element.mozRequestFullScreen) { // Firefox
+                element.mozRequestFullScreen();
+            } else if (element.webkitRequestFullscreen) { // Chrome, Safari und Opera
+                element.webkitRequestFullscreen();
+            } else if (element.msRequestFullscreen) { // IE/Edge
+                element.msRequestFullscreen();
+            }
+        }
 
         function starteSpiel() {
             startSeite.classList.add('hidden');
+            // Versucht, den Vollbildmodus für den gesamten HTML-Body zu aktivieren
+            activateFullscreen(document.documentElement);
             hintergrundMusik.play().catch(e => console.error("Autoplay-Fehler: ", e));
             ladeFrage();
         }
